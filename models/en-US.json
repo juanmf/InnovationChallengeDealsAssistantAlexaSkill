@@ -1,7 +1,7 @@
 {
   "interactionModel": {
     "languageModel": {
-      "invocationName": "space facts",
+      "invocationName": "deal assistant",
       "intents": [
         {
           "name": "AMAZON.CancelIntent",
@@ -20,24 +20,25 @@
           "samples": []
         },
         {
-          "name": "GetNewFactIntent",
+          "name": "SubscribeIntent",
           "samples": [
-            "a fact",
-            "a space fact",
-            "tell me a fact",
-            "tell me a space fact",
-            "give me a fact",
-            "give me a space fact",
-            "tell me trivia",
-            "tell me a space trivia",
-            "give me trivia",
-            "give me a space trivia",
-            "give me some information",
-            "give me some space information",
-            "tell me something",
-            "give me something"
+            "watch deals for {asin}"
           ],
-          "slots": []
+          "slots": [   {
+              "name": "asin",
+              "type": "AMAZON.SearchQuery"
+            }]
+        },
+        {
+          "name": "BuyOnThresholdIntent",
+          "samples": [
+            "buy below {price} bucks"
+          ],
+          "slots": [
+            {
+              "name": "price",
+              "type": "AMAZON.NUMBER"
+            }]
         },
         {
           "name": "AMAZON.NavigateHomeIntent",

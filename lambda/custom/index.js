@@ -6,28 +6,66 @@ const i18n = require('i18next');
 const sprintf = require('i18next-sprintf-postprocessor');
 
 // core functionality for fact skill
-const GetNewFactHandler = {
+const SubscribeIntent = {
   canHandle(handlerInput) {
     const request = handlerInput.requestEnvelope.request;
     // checks request type
     return request.type === 'LaunchRequest'
       || (request.type === 'IntentRequest'
-        && request.intent.name === 'GetNewFactIntent');
+        && request.intent.name === 'SubscribeIntent');
   },
   handle(handlerInput) {
     const requestAttributes = handlerInput.attributesManager.getRequestAttributes();
+
+    const request = handlerInput.requestEnvelope.request;
+    const product = request.intent.slots.asin.value;
+    handlerInput.attributesManager.setSessionAttributes({
+      productDescription: product
+  });
+
     // gets a random fact by assigning an array to the variable
     // the random item from the array will be selected by the i18next library
     // the i18next library is set up in the Request Interceptor
     const randomFact = requestAttributes.t('FACTS');
     // concatenates a standard message with the random fact
-    const speakOutput = requestAttributes.t('GET_FACT_MESSAGE') + randomFact;
+    const speakOutput = "you've been subscribed to " + product + "Would you like to set a threshold to buy it?";
+
+    return handlerInput.responseBuilder
+      .speak(speakOutput)
+      .reprompt()
+      .getResponse();
+  },
+
+};
+
+const BuyOnThresholdIntent = {
+  canHandle(handlerInput) {
+    const request = handlerInput.requestEnvelope.request;
+    // checks request type
+    return request.type === 'LaunchRequest'
+      || (request.type === 'IntentRequest'
+        && request.intent.name === 'BuyOnThresholdIntent');
+  },
+  handle(handlerInput) {
+    const requestAttributes = handlerInput.attributesManager.getRequestAttributes();
+
+    const request = handlerInput.requestEnvelope.request;
+    const {productDescription} = handlerInput.attributesManager.getSessionAttributes();
+    const price = request.intent.slots.price.value;
+
+    // gets a random fact by assigning an array to the variable
+    // the random item from the array will be selected by the i18next library
+    // the i18next library is set up in the Request Interceptor
+    const randomFact = requestAttributes.t('FACTS');
+    // concatenates a standard message with the random fact
+    const speakOutput = "I'm watching " + productDescription + "; I'll buy it if it gets below " + price;
 
     return handlerInput.responseBuilder
       .speak(speakOutput)
       .withSimpleCard(requestAttributes.t('SKILL_NAME'), randomFact)
       .getResponse();
   },
+
 };
 
 const HelpHandler = {
@@ -106,7 +144,7 @@ const ErrorHandler = {
 
 const LocalizationInterceptor = {
   process(handlerInput) {
-    // Gets the locale from the request and initializes 
+    // Gets the locale from the request and initializes
     // i18next.
     const localizationClient = i18n.use(sprintf).init({
       lng: handlerInput.requestEnvelope.request.locale,
@@ -128,13 +166,13 @@ const LocalizationInterceptor = {
         sprintf: values,
       });
 
-      // If an array is used then a random value is selected 
+      // If an array is used then a random value is selected
       if (Array.isArray(value)) {
         return value[Math.floor(Math.random() * value.length)];
       }
       return value;
     };
-    // this gets the request attributes and save the localize function inside 
+    // this gets the request attributes and save the localize function inside
     // it to be used in a handler by calling requestAttributes.t(STRING_ID, [args...])
     const attributes = handlerInput.attributesManager.getRequestAttributes();
     attributes.t = function translate(...args) {
@@ -147,7 +185,8 @@ const skillBuilder = Alexa.SkillBuilders.custom();
 
 exports.handler = skillBuilder
   .addRequestHandlers(
-    GetNewFactHandler,
+    SubscribeIntent,
+    BuyOnThresholdIntent,
     HelpHandler,
     ExitHandler,
     FallbackHandler,
