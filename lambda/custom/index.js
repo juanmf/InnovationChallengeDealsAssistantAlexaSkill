@@ -68,7 +68,7 @@ const NotificationIntent = {
     const phone = request.intent.slots.phone.value;
 
     const speakOutput = "Thanks " + session.customerName
-            + ". I'll send my notifications to <say-as interpret-as="telephone">" + phone + "</say-as>. What products would you like me to track?";
+            + ". I'll send my notifications to <say-as interpret-as=\"telephone\">" + phone + "</say-as>. What products would you like me to track?";
 
     const session = handlerInput.attributesManager.getSessionAttributes();
     session.phoneNumber = session.phoneNumber || phone;
