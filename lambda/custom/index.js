@@ -72,7 +72,7 @@ const NotificationIntent = {
 
     const {customerName} = handlerInput.attributesManager.getSessionAttributes();
     const speakOutput = "Thanks " + customerName
-            + " I'll send my notifications to " + phone + " What products would you like me to track?";
+            + ". I'll send my notifications to " + phone + ". What products would you like me to track?";
 
     return handlerInput.responseBuilder
       .speak(speakOutput)
