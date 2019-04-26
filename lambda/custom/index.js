@@ -38,14 +38,14 @@ const NameIntent = {
 
     const request = handlerInput.requestEnvelope.request;
     const name = request.intent.slots.name.value;
-    handlerInput.attributesManager.setSessionAttributes({
-              customerName: name
-          });
 
     const speakOutput = "Thanks " + name
             + ". And what phone number would you like me to send the notification to?"
             + " Don't worry, I wont fill your phone with useless messages.";
 
+    const session = handlerInput.attributesManager.getSessionAttributes();
+    session.customerName = name;
+    handlerInput.attributesManager.setSessionAttributes(session);
     return handlerInput.responseBuilder
       .speak(speakOutput)
       .reprompt()
@@ -66,14 +66,13 @@ const NotificationIntent = {
 
     const request = handlerInput.requestEnvelope.request;
     const phone = request.intent.slots.phone.value;
-    const session = handlerInput.attributesManager.getSessionAttributes();
-    session.phoneNumber = phone;
-    handlerInput.attributesManager.setSessionAttributes(session);
-
 
     const speakOutput = "Thanks " + session.customerName
-            + ". I'll send my notifications to " + phone + ". What products would you like me to track?";
+            + ". I'll send my notifications to <say-as interpret-as="telephone">" + phone + "</say-as>. What products would you like me to track?";
 
+    const session = handlerInput.attributesManager.getSessionAttributes();
+    session.phoneNumber = session.phoneNumber || phone;
+    handlerInput.attributesManager.setSessionAttributes(session);
     return handlerInput.responseBuilder
       .speak(speakOutput)
       .reprompt()
@@ -96,9 +95,7 @@ const SubscribeIntent = {
 
     const request = handlerInput.requestEnvelope.request;
     const product = request.intent.slots.asin.value;
-    const session = handlerInput.attributesManager.getSessionAttributes();
-    session.productDescription = product;
-    handlerInput.attributesManager.setSessionAttributes(session);
+
 
     // gets a random fact by assigning an array to the variable
     // the random item from the array will be selected by the i18next library
@@ -107,6 +104,9 @@ const SubscribeIntent = {
     // concatenates a standard message with the random fact
     const speakOutput = "I've found " + product + " for 349 dollars. What is the highest price you want to pay?";
 
+    const session = handlerInput.attributesManager.getSessionAttributes();
+    session.productDescription = product;
+    handlerInput.attributesManager.setSessionAttributes(session);
     return handlerInput.responseBuilder
       .speak(speakOutput)
       .reprompt()
@@ -127,16 +127,15 @@ const BuyOnThresholdIntent = {
     const requestAttributes = handlerInput.attributesManager.getRequestAttributes();
 
     const request = handlerInput.requestEnvelope.request;
-    const {productDescription} = handlerInput.attributesManager.getSessionAttributes();
     const price = request.intent.slots.price.value;
+    const session = handlerInput.attributesManager.getSessionAttributes();
 
-    // gets a random fact by assigning an array to the variable
-    // the random item from the array will be selected by the i18next library
-    // the i18next library is set up in the Request Interceptor
-    const randomFact = requestAttributes.t('FACTS');
     // concatenates a standard message with the random fact
     const speakOutput = "Thanks. I'll let you know if the price drops below " + price
-            + " dollars for " + productDescription;
+            + " dollars for " + session.productDescription;
+
+    session.price = price;
+    handlerInput.attributesManager.setSessionAttributes(session);
 
     return handlerInput.responseBuilder
       .speak(speakOutput)

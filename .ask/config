@@ -52,7 +52,7 @@
             "codeUri": "lambda/custom",
             "functionName": "ask-custom-innovation-default",
             "handler": "index.handler",
-            "revisionId": "080da026-4532-4ac7-afff-688b1f17e735",
+            "revisionId": "5b48a7b7-2939-4240-b0f2-493f5bca0b0a",
             "runtime": "nodejs8.10"
           }
         ]
