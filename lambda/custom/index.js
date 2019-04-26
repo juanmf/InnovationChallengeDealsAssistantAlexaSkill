@@ -16,14 +16,13 @@ const LaunchIntent = {
     // Welcome message and asks user for her/his name.
     const speakOutput = "Hi, I'm your new deals assistant. I can keep track of products "
             + "you want to buy and notify you when the cost of the product drops to the price "
-            + "you want to pay. I forgot to ask, what's your name?";
+            + "you want to pay. I forgot to ask, what is your name?";
 
     return handlerInput.responseBuilder
       .speak(speakOutput)
       .reprompt()
       .getResponse();
   },
-
 };
 
 const NameIntent = {
@@ -109,6 +108,39 @@ const SubscribeIntent = {
     const session = handlerInput.attributesManager.getSessionAttributes();
     session.productDescription = product;
     handlerInput.attributesManager.setSessionAttributes(session);
+    return handlerInput.responseBuilder
+      .speak(speakOutput)
+      .getResponse();
+  },
+};
+
+// Tell users which items are being tracked
+const ListItemIntent = {
+  canHandle(handlerInput) {
+    const request = handlerInput.requestEnvelope.request;
+    // checks request type
+    return request.type === 'LaunchRequest' ||
+      (request.type === 'IntentRequest' && request.intent.name === 'ListItemIntent');
+  },
+  handle(handlerInput) {
+    const requestAttributes = handlerInput.attributesManager.getRequestAttributes();
+    const request = handlerInput.requestEnvelope.request;
+
+    const listSize = subscribedItems.size();
+    var speakOutput = "";
+
+    if (listSize === 0){
+      speakOutput = "You are not tracking any deals at the moment. Please tell me which items you are interested in.";
+    }
+    else {
+      speakOutput = "There are " + subscribedItems.size() + " products that I'm following : ";
+      for (var index = 0; index < listSize; index++){
+        var item = subscribedItems[index];
+        speakOutput += item.productName;
+        speakOutput += (index == (myArray.length - 1)) ? "." : ", ";
+      }
+    }
+
     return handlerInput.responseBuilder
       .speak(speakOutput)
       .getResponse();
@@ -271,6 +303,7 @@ exports.handler = skillBuilder
     NameIntent,
     NotificationIntent,
     SubscribeIntent,
+    ListItemIntent,
     BuyOnThresholdIntent,
     HelpHandler,
     ExitHandler,
@@ -335,7 +368,7 @@ const enData = {
     GET_FACT_MESSAGE: 'Here\'s your fact: ',
     HELP_MESSAGE: 'You can say tell me a space fact, or, you can say exit... What can I help you with?',
     HELP_REPROMPT: 'What can I help you with?',
-    FALLBACK_MESSAGE: 'The Deal Assistant skill can\'t help you with that.  It can help you discover facts about space if you say tell me a space fact. What can I help you with?',
+    FALLBACK_MESSAGE: 'The Deal Assistant skill can\'t help you with that.  It can help you to find deals on Amazon.com.',
     FALLBACK_REPROMPT: 'What can I help you with?',
     ERROR_MESSAGE: 'Sorry, an error occurred.',
     STOP_MESSAGE: 'Goodbye!',

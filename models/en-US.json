@@ -63,6 +63,14 @@
             }]
         },
         {
+          "name": "ListItemIntent",
+          "samples": [
+            "What products are you following for me?",
+            "What items am I following?",
+            "Tell me the list of items I'm tracking."
+          ]
+        },
+        {
           "name": "AMAZON.NavigateHomeIntent",
           "samples": []
         }
