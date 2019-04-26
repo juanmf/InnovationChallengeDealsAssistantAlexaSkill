@@ -4,7 +4,8 @@
 const Alexa = require('ask-sdk-core');
 const i18n = require('i18next');
 const sprintf = require('i18next-sprintf-postprocessor');
-// core functionality for fact skill
+
+// Launch Intent with welcoming message
 const LaunchIntent = {
   canHandle(handlerInput) {
     const request = handlerInput.requestEnvelope.request;
@@ -12,7 +13,7 @@ const LaunchIntent = {
     return request.type === 'LaunchRequest';
   },
   handle(handlerInput) {
-    // concatenates a standard message with the random fact
+    // Welcome message and asks user for her/his name.
     const speakOutput = "Hi, I'm your new deals assistant. I can keep track of products "
             + "you want to buy and notify you when the cost of the product drops to the price "
             + "you want to pay. I forgot to ask, what's your name?";
@@ -51,7 +52,6 @@ const NameIntent = {
       .reprompt()
       .getResponse();
   },
-
 };
 
 const NotificationIntent = {
@@ -79,17 +79,15 @@ const NotificationIntent = {
       .reprompt()
       .getResponse();
   },
-
 };
 
-// core functionality for fact skill
+// Subscribe ASIN intent
 const SubscribeIntent = {
   canHandle(handlerInput) {
     const request = handlerInput.requestEnvelope.request;
     // checks request type
-    return request.type === 'LaunchRequest'
-      || (request.type === 'IntentRequest'
-        && request.intent.name === 'SubscribeIntent');
+    return request.type === 'LaunchRequest' ||
+      (request.type === 'IntentRequest' && request.intent.name === 'SubscribeIntent');
   },
   handle(handlerInput) {
     const requestAttributes = handlerInput.attributesManager.getRequestAttributes();
@@ -97,23 +95,24 @@ const SubscribeIntent = {
     const request = handlerInput.requestEnvelope.request;
     const product = request.intent.slots.asin.value;
 
+    var speakOutput = "";
 
-    // gets a random fact by assigning an array to the variable
-    // the random item from the array will be selected by the i18next library
-    // the i18next library is set up in the Request Interceptor
-    const randomFact = requestAttributes.t('FACTS');
-    // concatenates a standard message with the random fact
-    const speakOutput = "I've found " + product + " for 349 dollars. What is the highest price you want to pay?";
+    const item = itemData.find(obj => {return obj.productName === product});
+    if (item === undefined) {
+      speakOutput = product + " could not be found. Please search for different items.";
+    }
+    else {
+      subscribedItems.push({"productName":product, "price":0 });
+      speakOutput = "I've found " + item.productName + " for " + item.price + " dollars. What is the highest price you want to pay?";
+    }
 
     const session = handlerInput.attributesManager.getSessionAttributes();
     session.productDescription = product;
     handlerInput.attributesManager.setSessionAttributes(session);
     return handlerInput.responseBuilder
       .speak(speakOutput)
-      .reprompt()
       .getResponse();
   },
-
 };
 
 const BuyOnThresholdIntent = {
@@ -130,19 +129,25 @@ const BuyOnThresholdIntent = {
     const request = handlerInput.requestEnvelope.request;
     const price = request.intent.slots.price.value;
     const session = handlerInput.attributesManager.getSessionAttributes();
-
-    // concatenates a standard message with the random fact
-    const speakOutput = "Thanks. I'll let you know if the price drops below " + price
-            + " dollars for " + session.productDescription;
-
     session.price = price;
     handlerInput.attributesManager.setSessionAttributes(session);
+
+    var speakOutput = "";
+
+    const item = subscribedItems.find(obj => {return obj.productName ===  session.productDescription});
+    if (item === undefined) {
+      speakOutput = session.productDescription + " could not be found in your list.";
+    }
+    else {
+      subscribedItems.find(obj => {return obj.productName ===  session.productDescription}).price = price;
+      speakOutput = "Thanks. I'll let you know if the price drops below " + price
+        + " dollars for " +  session.productDescription;
+    }
 
     return handlerInput.responseBuilder
       .speak(speakOutput)
       .getResponse();
   },
-
 };
 
 const HelpHandler = {
@@ -276,6 +281,22 @@ exports.handler = skillBuilder
   .addErrorHandlers(ErrorHandler)
   .lambda();
 
+const itemData = [
+  {
+    "productName": "test item",
+    "price": 100
+  },
+  {
+    "productName": "Bose Quite Comfort 35 Noise Cancelling Headphone",
+    "price": 350
+  },
+  {
+    "productName": "Samsung 60 Inch TV",
+    "price": 600
+  }
+]
+
+const subscribedItems = [];
 
 // translations
 const deData = {
@@ -308,14 +329,13 @@ const dedeData = {
 // TODO: Replace this data with your own."**  This is the data for our skill.  You can see that it is a simple list of facts.
 
 // TODO: The items below this comment need your attention."** This is the beginning of the section where you need to customize several text strings for your skill.
-
 const enData = {
   translation: {
-    SKILL_NAME: 'Space Facts',
+    SKILL_NAME: 'Deal Assistant',
     GET_FACT_MESSAGE: 'Here\'s your fact: ',
     HELP_MESSAGE: 'You can say tell me a space fact, or, you can say exit... What can I help you with?',
     HELP_REPROMPT: 'What can I help you with?',
-    FALLBACK_MESSAGE: 'The Space Facts skill can\'t help you with that.  It can help you discover facts about space if you say tell me a space fact. What can I help you with?',
+    FALLBACK_MESSAGE: 'The Deal Assistant skill can\'t help you with that.  It can help you discover facts about space if you say tell me a space fact. What can I help you with?',
     FALLBACK_REPROMPT: 'What can I help you with?',
     ERROR_MESSAGE: 'Sorry, an error occurred.',
     STOP_MESSAGE: 'Goodbye!',
