@@ -66,12 +66,12 @@ const NotificationIntent = {
 
     const request = handlerInput.requestEnvelope.request;
     const phone = request.intent.slots.phone.value;
-    handlerInput.attributesManager.setSessionAttributes({
-              phoneNumber: phone
-          });
+    const session = handlerInput.attributesManager.getSessionAttributes();
+    session.phoneNumber = phone;
+    handlerInput.attributesManager.setSessionAttributes(session);
 
-    const {customerName} = handlerInput.attributesManager.getSessionAttributes();
-    const speakOutput = "Thanks " + customerName
+
+    const speakOutput = "Thanks " + session.customerName
             + ". I'll send my notifications to " + phone + ". What products would you like me to track?";
 
     return handlerInput.responseBuilder
@@ -96,9 +96,9 @@ const SubscribeIntent = {
 
     const request = handlerInput.requestEnvelope.request;
     const product = request.intent.slots.asin.value;
-    handlerInput.attributesManager.setSessionAttributes({
-      productDescription: product
-  });
+    const session = handlerInput.attributesManager.getSessionAttributes();
+    session.productDescription = product;
+    handlerInput.attributesManager.setSessionAttributes(session);
 
     // gets a random fact by assigning an array to the variable
     // the random item from the array will be selected by the i18next library
