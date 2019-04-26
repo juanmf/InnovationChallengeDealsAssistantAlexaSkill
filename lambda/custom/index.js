@@ -4,6 +4,83 @@
 const Alexa = require('ask-sdk-core');
 const i18n = require('i18next');
 const sprintf = require('i18next-sprintf-postprocessor');
+// core functionality for fact skill
+const LaunchIntent = {
+  canHandle(handlerInput) {
+    const request = handlerInput.requestEnvelope.request;
+    // checks request type
+    return request.type === 'LaunchRequest';
+  },
+  handle(handlerInput) {
+    // concatenates a standard message with the random fact
+    const speakOutput = "Hi, I'm your new deals assistant. I can keep track of products "
+            + "you want to buy and notify you when the cost of the product drops to the price "
+            + "you want to pay. I forgot to ask, what's your name?";
+
+    return handlerInput.responseBuilder
+      .speak(speakOutput)
+      .reprompt()
+      .getResponse();
+  },
+
+};
+
+const NameIntent = {
+  canHandle(handlerInput) {
+    const request = handlerInput.requestEnvelope.request;
+    // checks request type
+    return request.type === 'LaunchRequest'
+      || (request.type === 'IntentRequest'
+        && request.intent.name === 'NameIntent');
+  },
+  handle(handlerInput) {
+    const requestAttributes = handlerInput.attributesManager.getRequestAttributes();
+
+    const request = handlerInput.requestEnvelope.request;
+    const name = request.intent.slots.name.value;
+    handlerInput.attributesManager.setSessionAttributes({
+              customerName: name
+          });
+
+    const speakOutput = "Thanks " + name
+            + ". And what phone number would you like me to send the notification to?"
+            + " Don't worry, I wont fill your phone with useless messages.";
+
+    return handlerInput.responseBuilder
+      .speak(speakOutput)
+      .reprompt()
+      .getResponse();
+  },
+
+};
+
+const NotificationIntent = {
+  canHandle(handlerInput) {
+    const request = handlerInput.requestEnvelope.request;
+    // checks request type
+    return (request.type === 'IntentRequest'
+        && request.intent.name === 'NotificationIntent');
+  },
+  handle(handlerInput) {
+    const requestAttributes = handlerInput.attributesManager.getRequestAttributes();
+
+    const request = handlerInput.requestEnvelope.request;
+    const phone = request.intent.slots.phone.value;
+    handlerInput.attributesManager.setSessionAttributes({
+              phoneNumber: phone
+          });
+
+    const {customerName} = handlerInput.attributesManager.getSessionAttributes();
+    const speakOutput = "Thanks " + customerName
+            + " I'll send my notifications to " + phone + " What products would you like me to track?";
+
+    return handlerInput.responseBuilder
+      .speak(speakOutput)
+      .reprompt()
+      .getResponse();
+  },
+
+};
 
 // core functionality for fact skill
 const SubscribeIntent = {
@@ -28,7 +105,7 @@ const SubscribeIntent = {
     // the i18next library is set up in the Request Interceptor
     const randomFact = requestAttributes.t('FACTS');
     // concatenates a standard message with the random fact
-    const speakOutput = "you've been subscribed to " + product + "Would you like to set a threshold to buy it?";
+    const speakOutput = "I've found " + product + " for 349 dollars. What is the highest price you want to pay?";
 
     return handlerInput.responseBuilder
       .speak(speakOutput)
@@ -58,11 +135,11 @@ const BuyOnThresholdIntent = {
     // the i18next library is set up in the Request Interceptor
     const randomFact = requestAttributes.t('FACTS');
     // concatenates a standard message with the random fact
-    const speakOutput = "I'm watching " + productDescription + "; I'll buy it if it gets below " + price;
+    const speakOutput = "Thanks. I'll let you know if the price drops below " + price
+            + " dollars for " + productDescription;
 
     return handlerInput.responseBuilder
       .speak(speakOutput)
-      .withSimpleCard(requestAttributes.t('SKILL_NAME'), randomFact)
       .getResponse();
   },
 
@@ -185,6 +262,9 @@ const skillBuilder = Alexa.SkillBuilders.custom();
 
 exports.handler = skillBuilder
   .addRequestHandlers(
+    LaunchIntent,
+    NameIntent,
+    NotificationIntent,
     SubscribeIntent,
     BuyOnThresholdIntent,
     HelpHandler,

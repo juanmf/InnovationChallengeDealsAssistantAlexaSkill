@@ -22,7 +22,7 @@
         {
           "name": "SubscribeIntent",
           "samples": [
-            "watch deals for {asin}"
+            "Please tell me when {asin} are on special."
           ],
           "slots": [   {
               "name": "asin",
@@ -32,12 +32,34 @@
         {
           "name": "BuyOnThresholdIntent",
           "samples": [
-            "buy below {price} bucks"
+            "less than {price} dollars."
           ],
           "slots": [
             {
               "name": "price",
               "type": "AMAZON.NUMBER"
+            }]
+        },
+        {
+          "name": "NameIntent",
+          "samples": [
+            "My name is {name}"
+          ],
+          "slots": [
+            {
+              "name": "name",
+              "type": "AMAZON.US_FIRST_NAME"
+            }]
+        },
+        {
+          "name": "NotificationIntent",
+          "samples": [
+            "Please send me notifications to {phone} "
+          ],
+          "slots": [
+            {
+              "name": "phone",
+              "type": "AMAZON.PhoneNumber"
             }]
         },
         {

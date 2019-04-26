@@ -70,6 +70,6 @@ configuration:
 - test: AMAZON.FallbackIntent
 - LaunchRequest
 - AMAZON.FallbackIntent:
-  - prompt: The Space Facts skill can't help you with that # prompt is equivalent to response.outputSpeech.ssml
+  - prompt: Sorry Deals Assistant did everything in her hands but didn't get what your want. # prompt is equivalent to response.outputSpeech.ssml
   - reprompt: What can I help you with? # reprompt is equivalent to response.reprompt.outputSpeech.ssml
   - response.shouldEndSession: false

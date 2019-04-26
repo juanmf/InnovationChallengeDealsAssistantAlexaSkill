@@ -24,7 +24,7 @@
             "eTag": "41ec21470d98767ad8b1364c7d714edb"
           },
           "en-US": {
-            "eTag": "48f4843cfb02cc1a577d9d7073ae7f19"
+            "eTag": "223c4ae0ee47e7bea7fbcd041acb5d92"
           },
           "fr-FR": {
             "eTag": "077a4e0e4fec4df8f1a41189b850b686"
@@ -52,7 +52,7 @@
             "codeUri": "lambda/custom",
             "functionName": "ask-custom-innovation-default",
             "handler": "index.handler",
-            "revisionId": "8ae09c52-ac2d-43a0-90d8-797e1f3b4623",
+            "revisionId": "080da026-4532-4ac7-afff-688b1f17e735",
             "runtime": "nodejs8.10"
           }
         ]
