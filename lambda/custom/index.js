@@ -14,9 +14,8 @@ const LaunchIntent = {
   },
   handle(handlerInput) {
     // Welcome message and asks user for her/his name.
-    const speakOutput = "Hi, I'm your new deals assistant. I can keep track of products "
-            + "you want to buy and notify you when the cost of the product drops to the price "
-            + "you want to pay. I forgot to ask, what is your name?";
+    const speakOutput = "Hi, I'm your deals assistant. I can keep track of products "
+            + "you want to buy and notify you when the price drops. Before we get started, what is your name?";
 
     return handlerInput.responseBuilder
       .speak(speakOutput)
@@ -40,8 +39,7 @@ const NameIntent = {
     const name = request.intent.slots.name.value;
 
     const speakOutput = "Thanks " + name
-            + ". And what phone number would you like me to send the notification to?"
-            + " Don't worry, I wont fill your phone with useless messages.";
+            + ". And what phone number would you like me to send the notification to?";
 
     const session = handlerInput.attributesManager.getSessionAttributes();
     session.customerName = name;
@@ -96,12 +94,12 @@ const SubscribeIntent = {
 
     var speakOutput = "";
 
-    const item = itemData.find(obj => {return obj.productName === product});
+    const item = itemData.find(obj => {return (obj.productName).toLowerCase() === product.toLowerCase()});
     if (item === undefined) {
       speakOutput = product + " could not be found. Please search for different items.";
     }
     else {
-      subscribedItems.push({"productName":product, "price":0 });
+      subscribedItems.push({"productName":product.toLowerCase(), "price":0 });
       speakOutput = "I've found " + item.productName + " for " + item.price + " dollars. What is the highest price you want to pay?";
     }
 
@@ -110,6 +108,74 @@ const SubscribeIntent = {
     handlerInput.attributesManager.setSessionAttributes(session);
     return handlerInput.responseBuilder
       .speak(speakOutput)
+      .reprompt()
+      .getResponse();
+  },
+};
+
+// Modify ASIN intent
+const ModifyThresholdIntent = {
+  canHandle(handlerInput) {
+    const request = handlerInput.requestEnvelope.request;
+    // checks request type
+    return request.type === 'LaunchRequest' ||
+      (request.type === 'IntentRequest' && request.intent.name === 'ModifyThresholdIntent');
+  },
+  handle(handlerInput) {
+    const requestAttributes = handlerInput.attributesManager.getRequestAttributes();
+    const request = handlerInput.requestEnvelope.request;
+    const product = request.intent.slots.asin.value;
+
+    var speakOutput = "";
+
+    const item = subscribedItems.find(obj => {return (obj.productName).toLowerCase() === product.toLowerCase()});
+    if (item === undefined) {
+      speakOutput = product + " could not be found from your list.";
+    }
+    else {
+      speakOutput = "The current threshold for " + item.productName + " is " + item.price + " dollars. What is the most you want to pay?";
+    }
+
+    const session = handlerInput.attributesManager.getSessionAttributes();
+    session.productDescription = product;
+    handlerInput.attributesManager.setSessionAttributes(session);
+    return handlerInput.responseBuilder
+      .speak(speakOutput)
+      .reprompt()
+      .getResponse();
+  },
+};
+
+// Unsubscribe ASIN intent
+const UnsubscribeIntent = {
+  canHandle(handlerInput) {
+    const request = handlerInput.requestEnvelope.request;
+    // checks request type
+    return request.type === 'LaunchRequest' ||
+      (request.type === 'IntentRequest' && request.intent.name === 'UnsubscribeIntent');
+  },
+  handle(handlerInput) {
+    const requestAttributes = handlerInput.attributesManager.getRequestAttributes();
+    const request = handlerInput.requestEnvelope.request;
+    const product = request.intent.slots.asin.value;
+
+    var speakOutput = "";
+
+    const item = itemData.find(obj => {return obj.productName === product});
+    if (item === undefined) {
+      speakOutput = product + " could not be found from the list.";
+    }
+    else {
+      speakOutput = "I removed " + item.productName + " from your list.";
+    }
+
+    const session = handlerInput.attributesManager.getSessionAttributes();
+    session.productDescription = product;
+    handlerInput.attributesManager.setSessionAttributes(session);
+
+    return handlerInput.responseBuilder
+      .speak(speakOutput)
+      .reprompt()
       .getResponse();
   },
 };
@@ -126,23 +192,29 @@ const ListItemIntent = {
     const requestAttributes = handlerInput.attributesManager.getRequestAttributes();
     const request = handlerInput.requestEnvelope.request;
 
-    const listSize = subscribedItems.size();
+    const listSize = subscribedItems.length;
     var speakOutput = "";
 
     if (listSize === 0){
       speakOutput = "You are not tracking any deals at the moment. Please tell me which items you are interested in.";
     }
     else {
-      speakOutput = "There are " + subscribedItems.size() + " products that I'm following : ";
-      for (var index = 0; index < listSize; index++){
-        var item = subscribedItems[index];
-        speakOutput += item.productName;
-        speakOutput += (index == (myArray.length - 1)) ? "." : ", ";
+      if (listSize === 1) {
+        speakOutput = "There is " + listSize + " product that I'm following: " + subscribedItems[0].productName + ".";
+      }
+      else{
+        speakOutput = "There are " + subscribedItems.length + " products that I'm following: ";
+        for (var index = 0; index < listSize; index++){
+          var item = subscribedItems[index];
+          speakOutput += item.productName;
+          speakOutput += (index == (subscribedItems.length - 2)) ? " and " : (index == (subscribedItems.length - 1)) ? "." : ", ";
+        }
       }
     }
 
     return handlerInput.responseBuilder
       .speak(speakOutput)
+      .reprompt()
       .getResponse();
   },
 };
@@ -157,7 +229,6 @@ const BuyOnThresholdIntent = {
   },
   handle(handlerInput) {
     const requestAttributes = handlerInput.attributesManager.getRequestAttributes();
-
     const request = handlerInput.requestEnvelope.request;
     const price = request.intent.slots.price.value;
     const session = handlerInput.attributesManager.getSessionAttributes();
@@ -166,18 +237,19 @@ const BuyOnThresholdIntent = {
 
     var speakOutput = "";
 
-    const item = subscribedItems.find(obj => {return obj.productName ===  session.productDescription});
+    const item = subscribedItems.find(obj => {return (obj.productName).toLowerCase() === (session.productDescription).toLowerCase()});
     if (item === undefined) {
       speakOutput = session.productDescription + " could not be found in your list.";
     }
     else {
-      subscribedItems.find(obj => {return obj.productName ===  session.productDescription}).price = price;
-      speakOutput = "Thanks. I'll let you know if the price drops below " + price
-        + " dollars for " +  session.productDescription;
+      subscribedItems.find(obj => {return (obj.productName).toLowerCase() === (session.productDescription).toLowerCase()}).price = price;
+      speakOutput = "Thanks. I'll let you know when the price for " + session.productDescription + " drops below "
+        + price + " dollars.";
     }
 
     return handlerInput.responseBuilder
       .speak(speakOutput)
+      .reprompt()
       .getResponse();
   },
 };
@@ -305,6 +377,8 @@ exports.handler = skillBuilder
     SubscribeIntent,
     ListItemIntent,
     BuyOnThresholdIntent,
+    UnsubscribeIntent,
+    ModifyThresholdIntent,
     HelpHandler,
     ExitHandler,
     FallbackHandler,
@@ -316,8 +390,16 @@ exports.handler = skillBuilder
 
 const itemData = [
   {
-    "productName": "test item",
-    "price": 100
+    "productName": "iPhone X",
+    "price": 999
+  },
+  {
+    "productName": "Echo Dot",
+    "price": 30
+  },
+  {
+    "productName": "Tumi Backpack",
+    "price": 400
   },
   {
     "productName": "Bose Quite Comfort 35 Noise Cancelling Headphone",

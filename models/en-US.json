@@ -22,7 +22,22 @@
         {
           "name": "SubscribeIntent",
           "samples": [
-            "Please tell me when {asin} are on special."
+            "Please tell me when {asin} is on special",
+            "Please tell me when {asin} is on sale",
+            "Tell me when {asin} is on sale"
+          ],
+          "slots": [   {
+              "name": "asin",
+              "type": "AMAZON.SearchQuery"
+            }]
+        },
+        {
+          "name": "ModifyThresholdIntent",
+          "samples": [
+            "I want to update {asin}",
+            "Update threshold price for {asin}",
+            "Change price for {asin}",
+            "I want to change price for {asin}"
           ],
           "slots": [   {
               "name": "asin",
@@ -32,7 +47,11 @@
         {
           "name": "BuyOnThresholdIntent",
           "samples": [
-            "less than {price} dollars."
+            "Less than {price}",
+            "Under {price} dollars",
+            "Maximum {price} dollars",
+            "I would like to purchase it when it is {price} dollars",
+            "Less than {price} dollars"
           ],
           "slots": [
             {
@@ -65,10 +84,22 @@
         {
           "name": "ListItemIntent",
           "samples": [
-            "What products are you following for me?",
-            "What items am I following?",
-            "Tell me the list of items I'm tracking."
+            "What products are you following for me",
+            "What items am I following",
+            "Tell me the list of items I'm tracking"
           ]
+        },
+        {
+          "name": "UnsubscribeIntent",
+          "samples": [
+            "Unsubscribe {asin}",
+            "Remove {asin} from my list",
+            "Delete {asin}"
+          ],
+          "slots": [   {
+              "name": "asin",
+              "type": "AMAZON.SearchQuery"
+            }]
         },
         {
           "name": "AMAZON.NavigateHomeIntent",
